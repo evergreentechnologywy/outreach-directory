@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIP Concierge | Weekly Lineup Registration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="container">
+    <div class="logo">VIP Concierge</div>
+    <div class="subtitle">Exclusive Weekly Lineup & Availability</div>
+
+    <form id="optin-form" action="#" method="POST">
+      
+      <div class="form-group">
+        <label for="name">First Name</label>
+        <input type="text" id="name" name="name" required placeholder="e.g. John">
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input type="tel" id="phone" name="phone" required placeholder="(555) 000-0000">
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" required placeholder="john@example.com">
+      </div>
+
+      <div class="form-group">
+        <label for="city">Primary City of Interest</label>
+        <select id="city" name="city" required>
+          <option value="" disabled selected>Select a city...</option>
+          <option value="las_vegas">Las Vegas, NV</option>
+          <option value="miami">Miami, FL</option>
+          <option value="new_york">New York, NY</option>
+          <option value="los_angeles">Los Angeles, CA</option>
+          <option value="other">Other / Nationwide</option>
+        </select>
+      </div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="consent" name="consent" required>
+        <label for="consent">
+          I am 18 years of age or older. I consent to receive recurring automated marketing and informational text messages and emails from VIP Concierge. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel.
+        </label>
+      </div>
+
+      <button type="submit" class="link-btn btn-primary">Join the VIP List</button>
+
+    </form>
+
+    <div class="footer-text">
+      By signing up, you agree to our <a href="#">Terms of Service</a> & <a href="#">Privacy Policy</a>. <br>
+      © 2026 VIP Concierge Services.
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('optin-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // In production, this would send data to Composio / Brevo / CRM
+      const btn = this.querySelector('button');
+      btn.textContent = 'Request Received...';
+      btn.style.opacity = '0.7';
+      
+      setTimeout(() => {
+        btn.textContent = 'Successfully Subscribed!';
+        btn.style.backgroundColor = '#34a853';
+        btn.style.color = '#fff';
+        this.reset();
+      }, 1500);
+    });
+  </script>
+</body>
+</html>
