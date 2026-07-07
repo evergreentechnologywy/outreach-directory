@@ -58,9 +58,14 @@ start_tailscaled() {
     tun_arg=(--tun=userspace-networking)
     log "No /dev/net/tun; using userspace networking"
   fi
-  if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
+  if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ] && [ ${#tun_arg[@]} -eq 0 ]; then
     systemctl enable --now tailscaled
-    return 0
+    for _ in $(seq 1 30); do
+      tailscaled_ready && return 0
+      sleep 1
+    done
+    log "ERROR: tailscaled failed to become ready"
+    exit 1
   fi
   log "Starting tailscaled without systemd"
   pkill -x tailscaled 2>/dev/null || true

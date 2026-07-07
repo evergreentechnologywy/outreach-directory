@@ -34,7 +34,7 @@ if [ -z "$TS_IP" ]; then
 fi
 
 SSHD_DROP_IN="/etc/ssh/sshd_config.d/99-evergreen-tailscale.conf"
-if [ ! -f "$SSHD_DROP_IN" ] || ! grep -q "ListenAddress $TS_IP" "$SSHD_DROP_IN" 2>/dev/null; then
+if [ ! -f "$SSHD_DROP_IN" ] || ! grep -qF "ListenAddress ${TS_IP}" "$SSHD_DROP_IN" 2>/dev/null; then
   log "Configuring sshd for Tailscale-only listen on $TS_IP"
   mkdir -p /etc/ssh/sshd_config.d
   cat >"$SSHD_DROP_IN" <<EOF
@@ -46,7 +46,10 @@ PermitRootLogin no
 EOF
   if command -v sshd >/dev/null 2>&1; then
     sshd -t
-    systemctl reload ssh 2>/dev/null || systemctl reload sshd 2>/dev/null || true
+    if ! systemctl reload ssh 2>/dev/null && ! systemctl reload sshd 2>/dev/null; then
+      log "ERROR: failed to reload sshd"
+      exit 1
+    fi
   fi
 fi
 
