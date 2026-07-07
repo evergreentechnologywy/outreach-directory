@@ -60,19 +60,49 @@
   </div>
 
   <script>
-    document.getElementById('optin-form').addEventListener('submit', function(e) {
+    document.getElementById('optin-form').addEventListener('submit', async function(e) {
       e.preventDefault();
-      // In production, this would send data to Composio / Brevo / CRM
       const btn = this.querySelector('button');
-      btn.textContent = 'Request Received...';
+      const originalText = btn.textContent;
+      btn.textContent = 'Processing...';
       btn.style.opacity = '0.7';
-      
-      setTimeout(() => {
-        btn.textContent = 'Successfully Subscribed!';
-        btn.style.backgroundColor = '#34a853';
+      btn.disabled = true;
+
+      const formData = {
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        city: document.getElementById('city').value,
+        consent: document.getElementById('consent').checked
+      };
+
+      try {
+        const res = await fetch('https://vip-weekly.net/api/opt-in', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+
+        if (res.ok) {
+          btn.textContent = 'Successfully Subscribed!';
+          btn.style.backgroundColor = '#34a853';
+          btn.style.color = '#fff';
+          this.reset();
+        } else {
+          throw new Error('Server error');
+        }
+      } catch (err) {
+        btn.textContent = 'Error. Please try again.';
+        btn.style.backgroundColor = '#d32f2f';
         btn.style.color = '#fff';
-        this.reset();
-      }, 1500);
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.backgroundColor = '';
+          btn.style.color = '';
+          btn.disabled = false;
+          btn.style.opacity = '1';
+        }, 3000);
+      }
     });
   </script>
 </body>
