@@ -33,6 +33,22 @@ if [ -z "$TS_IP" ]; then
   exit 1
 fi
 
+reload_sshd() {
+  sshd -t
+  if systemctl reload ssh 2>/dev/null || systemctl reload sshd 2>/dev/null; then
+    return 0
+  fi
+  if command -v service >/dev/null 2>&1 && { service ssh reload 2>/dev/null || service sshd reload 2>/dev/null; }; then
+    return 0
+  fi
+  local pid
+  pid="$(pgrep -x sshd | head -1)" || true
+  if [ -n "$pid" ] && kill -HUP "$pid" 2>/dev/null; then
+    return 0
+  fi
+  return 1
+}
+
 SSHD_DROP_IN="/etc/ssh/sshd_config.d/99-evergreen-tailscale.conf"
 if [ ! -f "$SSHD_DROP_IN" ] || ! grep -qF "ListenAddress ${TS_IP}" "$SSHD_DROP_IN" 2>/dev/null; then
   log "Configuring sshd for Tailscale-only listen on $TS_IP"
@@ -44,12 +60,12 @@ Port 22
 PasswordAuthentication no
 PermitRootLogin no
 EOF
-  if command -v sshd >/dev/null 2>&1; then
-    sshd -t
-    if ! systemctl reload ssh 2>/dev/null && ! systemctl reload sshd 2>/dev/null; then
-      log "ERROR: failed to reload sshd"
-      exit 1
-    fi
+fi
+
+if command -v sshd >/dev/null 2>&1 && [ -f "$SSHD_DROP_IN" ] && grep -qF "ListenAddress ${TS_IP}" "$SSHD_DROP_IN" 2>/dev/null; then
+  if ! reload_sshd; then
+    log "ERROR: failed to reload sshd"
+    exit 1
   fi
 fi
 

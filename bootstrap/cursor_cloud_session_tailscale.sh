@@ -40,6 +40,11 @@ if ! tailscaled_ready; then
     --socket=/var/run/tailscale/tailscaled.sock \
     >/var/log/tailscaled.log 2>&1 &
   for _ in $(seq 1 30); do tailscaled_ready && break; sleep 1; done
+  if ! tailscaled_ready; then
+    log "ERROR: tailscaled failed to start"
+    tail -20 /var/log/tailscaled.log || true
+    exit 1
+  fi
 fi
 
 if ! tailscale_connected; then
