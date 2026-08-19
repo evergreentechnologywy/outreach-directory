@@ -28,8 +28,21 @@ export TAILSCALE_AUTH_KEY="${AUTH_KEY}"
 
 require_root "$@"
 
-if ! command -v tailscale >/dev/null 2>&1; then
-  curl -fsSL https://tailscale.com/install.sh | sh
+if ! command -v tailscale >/dev/null 2>&1 || ! command -v tailscaled >/dev/null 2>&1; then
+  curl -fsSL https://tailscale.com/install.sh | sh || true
+fi
+if ! command -v tailscale >/dev/null 2>&1 || ! command -v tailscaled >/dev/null 2>&1; then
+  log "Official installer unavailable; using static binaries"
+  case "$(uname -m)" in
+    x86_64|amd64) arch=amd64 ;;
+    aarch64|arm64) arch=arm64 ;;
+    *) log "ERROR: unsupported architecture $(uname -m)"; exit 1 ;;
+  esac
+  tmp="$(mktemp -d)"
+  curl -fsSL "https://pkgs.tailscale.com/stable/tailscale_latest_${arch}.tgz" | tar -xz -C "$tmp"
+  install -m 0755 "$tmp"/tailscale_*/tailscale /usr/bin/tailscale
+  install -m 0755 "$tmp"/tailscale_*/tailscaled /usr/bin/tailscaled
+  rm -rf "$tmp"
 fi
 
 if ! tailscaled_ready; then

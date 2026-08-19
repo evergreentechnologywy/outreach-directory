@@ -59,12 +59,39 @@ start_tailscaled() {
   exit 1
 }
 
+install_tailscale() {
+  if command -v tailscale >/dev/null 2>&1 && command -v tailscaled >/dev/null 2>&1; then
+    return 0
+  fi
+  log "Installing Tailscale"
+  if curl -fsSL https://tailscale.com/install.sh | sh && command -v tailscale >/dev/null 2>&1; then
+    return 0
+  fi
+  log "Official installer failed; falling back to static binaries"
+  local arch
+  case "$(uname -m)" in
+    x86_64|amd64) arch=amd64 ;;
+    aarch64|arm64) arch=arm64 ;;
+    *)
+      log "ERROR: unsupported architecture $(uname -m) for static Tailscale"
+      exit 1
+      ;;
+  esac
+  local tmp
+  tmp="$(mktemp -d)"
+  curl -fsSL "https://pkgs.tailscale.com/stable/tailscale_latest_${arch}.tgz" | tar -xz -C "$tmp"
+  install -m 0755 "$tmp"/tailscale_*/tailscale /usr/bin/tailscale
+  install -m 0755 "$tmp"/tailscale_*/tailscaled /usr/bin/tailscaled
+  rm -rf "$tmp"
+  command -v tailscale >/dev/null 2>&1 || {
+    log "ERROR: Tailscale static install failed"
+    exit 1
+  }
+}
+
 require_root "$@"
 
-if ! command -v tailscale >/dev/null 2>&1; then
-  log "Installing Tailscale"
-  curl -fsSL https://tailscale.com/install.sh | sh
-fi
+install_tailscale
 
 start_tailscaled
 
