@@ -15,7 +15,7 @@ tailscaled_ready() {
 }
 
 tailscale_connected() {
-  tailscale status --json 2>/dev/null | grep -q '"BackendState":"Running"' \
+  tailscale status --json 2>/dev/null | grep -Eq '"BackendState":[[:space:]]*"Running"' \
     || tailscale ip -4 2>/dev/null | grep -q '^100\.'
 }
 

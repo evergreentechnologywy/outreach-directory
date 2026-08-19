@@ -25,6 +25,11 @@ tailscaled_ready() {
   [ -S /var/run/tailscale/tailscaled.sock ] && tailscale debug prefs >/dev/null 2>&1
 }
 
+tailscale_running() {
+  tailscale status --json 2>/dev/null | grep -Eq '"BackendState":[[:space:]]*"Running"' \
+    || tailscale ip -4 2>/dev/null | grep -q '^100\.'
+}
+
 start_tailscaled() {
   if tailscaled_ready; then
     return 0
@@ -103,9 +108,7 @@ if [ -z "$AUTH_KEY" ]; then
   exit 1
 fi
 
-if tailscale status --json 2>/dev/null | grep -q '"BackendState":"Running"'; then
-  log "Tailscale already connected"
-elif tailscale status 2>/dev/null | grep -q '^100\.'; then
+if tailscale_running; then
   log "Tailscale already connected"
 else
   log "Joining tailnet as ${HOSTNAME}"
