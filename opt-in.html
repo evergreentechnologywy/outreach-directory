@@ -83,13 +83,15 @@
           body: JSON.stringify(formData)
         });
 
-        if (res.ok) {
+        const result = await res.json().catch(() => ({}));
+
+        if (res.ok && result.success) {
           btn.textContent = 'Successfully Subscribed!';
           btn.style.backgroundColor = '#34a853';
           btn.style.color = '#fff';
           this.reset();
         } else {
-          throw new Error('Server error');
+          throw new Error(result.error || 'Server error');
         }
       } catch (err) {
         btn.textContent = 'Error. Please try again.';
